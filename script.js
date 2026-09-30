@@ -1,101 +1,146 @@
-// ── CARRUSEL ───────────────────────────────────────────────────
-let slideIndex = 0;
-const slides = document.querySelectorAll('.slide');
-const dots = document.querySelectorAll('.dot');
-const prevBtn = document.querySelector('.prev');
-const nextBtn = document.querySelector('.next');
+let index = 0;
+const slides = document.querySelectorAll(".slide");
+const dots = document.querySelectorAll(".dot");
 
-function showSlide(index) {
-  if (slides.length === 0) return; // Por si no hay slides
-
-  if (index >= slides.length) slideIndex = 0;
-  if (index < 0) slideIndex = slides.length - 1;
-  
-  slides.forEach(slide => slide.classList.remove('active'));
-  dots.forEach(dot => dot.classList.remove('active'));
-  
-  slides[slideIndex].classList.add('active');
-  if(dots[slideIndex]) dots[slideIndex].classList.add('active');
+function showSlide(i) {
+  slides.forEach(slide => slide.classList.remove("active"));
+  dots.forEach(dot => dot.classList.remove("active"));
+  slides[i].classList.add("active");
+  dots[i].classList.add("active");
 }
 
-if (nextBtn && prevBtn) {
-  nextBtn.addEventListener('click', () => { slideIndex++; showSlide(slideIndex); });
-  prevBtn.addEventListener('click', () => { slideIndex--; showSlide(slideIndex); });
+function nextSlide() {
+  index = (index + 1) % slides.length;
+  showSlide(index);
 }
+
+function prevSlide() {
+  index = (index - 1 + slides.length) % slides.length;
+  showSlide(index);
+}
+
+document.querySelector(".next").onclick = nextSlide;
+document.querySelector(".prev").onclick = prevSlide;
 
 dots.forEach((dot, i) => {
-  dot.addEventListener('click', () => { slideIndex = i; showSlide(slideIndex); });
+  dot.addEventListener("click", () => {
+    index = i;
+    showSlide(index);
+  });
 });
 
-// Auto-play del carrusel (cambia de imagen cada 4 segundos)
-if (slides.length > 0) {
-  setInterval(() => {
-    slideIndex++;
-    showSlide(slideIndex);
-  }, 4000);
-}
+/* Auto play */
+setInterval(nextSlide, 4000);
 
+// Variable global que guarda si el chat está abierto o cerrado.
+let isOpen = false;
 
-// ── CHATBOT ────────────────────────────────────────────────────
+// Función que abre o cierra el panel del chat al hacer clic en la burbuja.
 function toggleChat() {
-  const panel = document.getElementById('panel');
-  if(panel) panel.classList.toggle('abierto');
-}
+  isOpen = !isOpen;
 
-function enviar() {
-  const input = document.getElementById('input');
-  const chat = document.getElementById('chat');
-  
-  if (!input || !chat) return;
+  const panel = document.getElementById("panel");
+  const notif = document.getElementById("notif");
 
-  const texto = input.value.trim();
-  
-  if (texto !== '') {
-    // Mensaje del usuario
-    chat.innerHTML += `<div class="mensaje usuario">${texto}</div>`;
-    input.value = '';
-    
-    // Auto-scroll hacia abajo
-    chat.scrollTop = chat.scrollHeight;
+  panel.classList.toggle("abierto", isOpen);
 
-    // Respuesta simulada del bot
-    setTimeout(() => {
-      chat.innerHTML += `<div class="mensaje bot">¡Qué interesante! Estoy aquí para ayudarte a aprender más sobre robótica. 🤖</div>`;
-      chat.scrollTop = chat.scrollHeight;
-    }, 1000);
+  if (isOpen) {
+    notif.classList.remove("visible");
+    document.getElementById("input").focus();
+    scrollBot();
   }
 }
 
+// Función que recibe el mensaje del usuario y devuelve una respuesta.
+function responder(mensaje) {
+  mensaje = mensaje.toLowerCase();
 
-// ── FUNCIONALIDAD: MODO OSCURO / CLARO ─────────────────────────
-const btnTema = document.getElementById('btn-tema');
+  if (mensaje.includes("hola") || mensaje.includes("buenas") || mensaje.includes("hey"))
+    return "¡Hola! 🤖 Soy tu asistente de robótica. Preguntame sobre sensores, actuadores, Arduino, programación o tipos de robots.";
 
-if (btnTema) {
-  btnTema.addEventListener('click', () => {
-    // Al hacer clic, le agregamos o quitamos la clase "modo-oscuro" a toda la página (body)
-    document.body.classList.toggle('modo-oscuro');
-    
-    // Cambiamos el texto y el emoji del botón dependiendo de si está oscuro o claro
-    if (document.body.classList.contains('modo-oscuro')) {
-      btnTema.innerHTML = '☀️ Modo Claro';
-    } else {
-      btnTema.innerHTML = '🌙 Modo Oscuro';
+  if ((mensaje.includes("qué es") && mensaje.includes("robótica")) || mensaje.includes("robotica"))
+    return "La robótica es la rama de la tecnología que diseña, construye y programa robots. Combina mecánica, electrónica e informática para crear máquinas autónomas o semiautónomas.";
+
+  if (mensaje.includes("arduino uno"))
+    return "El Arduino Uno es la placa más usada para aprender robótica 🔌 Tiene un chip ATmega328P a 16MHz, 14 pines digitales, 6 analógicos y se conecta por USB. ¡Es la favorita para principiantes!";
+
+  if (mensaje.includes("pines") || mensaje.includes("pin"))
+    return "El Arduino Uno tiene 3 tipos de pines ⚡ Digitales (0-13): solo HIGH o LOW. PWM (3,5,6,9,10,11): simulan voltaje variable. Analógicos (A0-A5): leen sensores como temperatura o luz.";
+
+  if (mensaje.includes("led"))
+    return "Un LED en Arduino Uno se conecta al pin positivo (+) con una resistencia de 220Ω y el negativo (-) a GND 💡 Con digitalWrite(13, HIGH) lo encendés y con LOW lo apagás.";
+
+  if (mensaje.includes("programar") || mensaje.includes("código") || mensaje.includes("lenguaje") || mensaje.includes("programa"))
+    return "Arduino se programa con C++ simplificado usando el IDE de Arduino 💻 Todo sketch tiene dos funciones: setup() que se ejecuta una vez al inicio, y loop() que se repite infinito.";
+
+  if (mensaje.includes("brazo") || mensaje.includes("manipulador"))
+    return "Los brazos robóticos tienen varios grados de libertad (DOF). Se usan en manufactura, cirugía y exploración. Su control depende de servomotores y algoritmos de cinemática inversa. 🦾";
+
+  if (mensaje.includes("gracias"))
+    return "¡De nada! La robótica es fascinante, seguí explorando. 🤖✨";
+
+  return "No entendí bien 🤔 Podés preguntarme sobre Arduino Uno, LEDs, cómo programar, brazos robóticos o qué es la robótica.";
+}
+
+// Función que escribe el texto del bot letra por letra (efecto de tipeo).
+function escribirTexto(elemento, texto) {
+  let i = 0;
+  let intervalo = setInterval(() => {
+    elemento.textContent += texto.charAt(i);
+    i++;
+    scrollBot();
+    if (i >= texto.length) clearInterval(intervalo);
+  }, 18);
+}
+
+// Función que scrollea el chat hasta el último mensaje.
+function scrollBot() {
+  const chat = document.getElementById("chat");
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// Función principal que se ejecuta cuando el usuario aprieta "Enviar" o Enter.
+function enviar() {
+  const input = document.getElementById("input");
+  const chat = document.getElementById("chat");
+  const notif = document.getElementById("notif");
+
+  const mensaje = input.value.trim();
+  if (mensaje === "") return;
+}
+  const msgUser = document.createElement("div");
+  msgUser.className = "mensaje usuario";
+  msgUser.textContent = mensaje;
+  chat.appendChild(msgUser);
+  scrollBot();
+
+  input.value = "";
+  input.disabled = true;
+
+  setTimeout(() => {
+    const msgBot = document.createElement("div");
+    msgBot.className = "mensaje bot";
+    chat.appendChild(msgBot);
+
+    const respuesta = responder(mensaje);
+    escribirTexto(msgBot, respuesta);
+
+    input.disabled = false;
+    input.focus();
+
+    if (!isOpen) {
+      notif.classList.add("visible");
+      notif.textContent = "1";
     }
-  });
-}
-
-// Formulario de contacto: muestra una confirmacion sin recargar la pagina.
-const contactForm = document.getElementById('contact-form');
-const contactStatus = document.getElementById('contact-status');
-
-if (contactForm && contactStatus) {
-  contactForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const formData = new FormData(contactForm);
-    const nombre = formData.get('nombre');
-
-    contactStatus.textContent = `Gracias, ${nombre}. Recibimos tu mensaje y te responderemos pronto.`;
-    contactStatus.classList.add('visible');
-    contactForm.reset();
-  });
-}
+  }, 400);
+  
+  
+  function applyTheme(isLight) {
+  document.body.classList.toggle('light-mode', isLight);
+  document.body.classList.toggle('modo-oscuro', !isLight);
+  if (themeButton) {
+    themeButton.textContent = isLight ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
+    themeButton.setAttribute('aria-pressed', String(isLight));
+  }
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  }
